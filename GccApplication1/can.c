@@ -6,10 +6,10 @@
 void can_printmsg(CanMsg m){
     printf("CanMsg(id:%d, length:%d, data:{", m.id, m.length);
     if(m.length){
-        printf("%d", m.byte[0]);
+        printf("%d", (int8_t)m.byte[0]);
     }
     for(uint8_t i = 1; i < m.length; i++){
-        printf(", %d", m.byte[i]);
+        printf(", %d", (int8_t) m.byte[i]);
     }
     printf("})\n");
 }
@@ -39,16 +39,16 @@ void can_init(CanInit init, uint8_t rxInterrupt){
     
     // Enable Clock for CAN0 in PMC
     // DIV = 1 (can clk = MCK/2), CMD = 1 (write), PID = 2B (CAN0)
-    PMC->PMC_PCR = PMC_PCR_EN | (0/*??*/ << PMC_PCR_DIV_Pos) | PMC_PCR_CMD | (ID_CAN0 << PMC_PCR_PID_Pos); 
+    PMC->PMC_PCR = PMC_PCR_EN | (0 << PMC_PCR_DIV_Pos) | PMC_PCR_CMD | (ID_CAN0 << PMC_PCR_PID_Pos); 
     PMC->PMC_PCER1 |= 1 << (ID_CAN0 - 32);
     
     //Set baudrate, Phase1, phase2 and propagation delay for can bus. Must match on all nodes!
-	CAN0->CAN_WPMR = 0x0;
-	CAN0->CAN_BR |= (init.propag << CAN_BR_PROPAG_Pos) | (init.phase1 << CAN_BR_PHASE1_Pos) | (init.phase2 << CAN_BR_PHASE2_Pos) | (init.sjw << CAN_BR_SJW_Pos) | (init.brp << CAN_BR_BRP_Pos) | (CAN_BR_SMP);
+	//CAN0->CAN_WPMR = 0x0;
+	CAN0->CAN_BR = init.reg; //(init.propag << CAN_BR_PROPAG_Pos) | (init.phase1 << CAN_BR_PHASE1_Pos) | (init.phase2 << CAN_BR_PHASE2_Pos) | (init.sjw << CAN_BR_SJW_Pos) | (init.brp << CAN_BR_BRP_Pos) | (CAN_BR_SMP);
 
     // Configure mailboxes
     // transmit
-    CAN0->CAN_MB[txMailbox].CAN_MID = CAN_MID_MIDE;
+    CAN0->CAN_MB[txMailbox].CAN_MID = 0;//CAN_MID_MIDE;
     CAN0->CAN_MB[txMailbox].CAN_MMR = CAN_MMR_MOT_MB_TX;
     
     // receive

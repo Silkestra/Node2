@@ -19,32 +19,39 @@ int main(void)
 	*/
 	
 	WDT->WDT_MR = WDT_MR_WDDIS;
-	CanMsg msg = {0};
+	CanMsg msg;
+	CanMsg msg1={0x000,0x02,{0xBB, 0xFF}};
 	
-	float T_Q = 0.00000025;
-	long F_OSC = 16 * 1000000;
+	float T_Q = 0.0000005;
+	long F_OSC = 84 * 1000000;
 	int BRP = (T_Q * F_OSC / 2) - 1;
 	
 	// Configure CAN initialization structure
-	CanInit canSettings;
+	CanInit canSettings={.brp=41, .phase1 = 6, .phase2 = 5, .propag= 0, .smp= 0, .sjw=2};
+		/*
 	canSettings.propag = 1;
-	canSettings.phase1 = 1;
-	canSettings.phase2 = 2;
-	canSettings.sjw = 1;
+	canSettings.phase1 = 6;
+	canSettings.phase2 = 5;
+	canSettings.sjw = 2;
 	canSettings.brp = BRP;    // Set BRP as calculated earlier
-	canSettings.smp = 1;      // Use sample mode
-
+	canSettings.smp = 0;      // Use sample mode
+	*/
 	// Initialize CAN with receive interrupts enabled
 	can_init(canSettings, 0); // Disable receive interrupts
-	
+
     while (1) 
     {	
-		if (can_rx(&msg)) {
-			printf("Message received!\n");
-			can_printmsg(msg); // Then print the actual message content
-			} else {
-			printf("No.\n");
+		can_tx(msg1);
+		
+		
+		/*
+		if(!can_rx(&msg)){
+			printf("No \n");
 		}
+		can_printmsg(msg);
+		*/
+		 // Then print the actual message content
+		
 		//printf('G');
 		//for (volatile uint32_t i = 0; i < 1000; i++);
 		
@@ -57,6 +64,7 @@ int main(void)
 		for (volatile uint32_t i = 0; i < 100000; i++); 
 		REG_PIOB_CODR = (1 << 13); 	
 		for (volatile uint32_t i = 0; i < 100000; i++); 
+	
 	*/
     }
 	
