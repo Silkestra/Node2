@@ -1,6 +1,8 @@
 
+
 #include "sam.h"
 #include "can.h"
+#include "PWM.h"
 #include <stdio.h>
 
 void can_printmsg(CanMsg m){
@@ -9,7 +11,9 @@ void can_printmsg(CanMsg m){
         printf("%d", (int8_t)m.byte[0]);
     }
     for(uint8_t i = 1; i < m.length; i++){
-        printf(", %d", (int8_t) m.byte[i]);
+		//printf("%d", i);
+		printf(", %d", (int8_t) m.byte[i]);	
+			
     }
     printf("})\n");
 }
@@ -79,11 +83,12 @@ void can_message_send (can_message * msg ) {
 	can_cntrl_RTS(0x01);
 }*/
 
+
 void can_tx(CanMsg m){
     while(!(CAN0->CAN_MB[txMailbox].CAN_MSR & CAN_MSR_MRDY)){}
     
     // Set message ID and use CAN 2.0B protocol
-    CAN0->CAN_MB[txMailbox].CAN_MID = CAN_MID_MIDvA(m.id) | CAN_MID_MIDE ;
+    CAN0->CAN_MB[txMailbox].CAN_MID = CAN_MID_MIDvA(m.id);
         
     // Coerce maximum 8 byte length
     m.length = m.length > 8 ? 8 : m.length;

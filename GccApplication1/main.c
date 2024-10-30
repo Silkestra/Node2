@@ -7,6 +7,7 @@
 #include "can.h"
 #include "sam.h"
 #include "uart.h"
+#include "PWM.h"
 
 int main(void)
 {
@@ -20,7 +21,8 @@ int main(void)
 	
 	WDT->WDT_MR = WDT_MR_WDDIS;
 	CanMsg msg;
-	CanMsg msg1={0x000,0x02,{0xBB, 0xFF}};
+	CanMsg msg1={0x000,0x02,{0xBE, 0x53}};
+	CanMsg msg2={0x000,0x02,{0xA4, 0x23}};
 	
 	float T_Q = 0.0000005;
 	long F_OSC = 84 * 1000000;
@@ -38,18 +40,21 @@ int main(void)
 	*/
 	// Initialize CAN with receive interrupts enabled
 	can_init(canSettings, 0); // Disable receive interrupts
+	pwm_init();
+	//pwm_set_duty_cycle(200);
 
     while (1) 
     {	
-		can_tx(msg1);
+		//can_tx(msg1);
+		//can_tx(msg2);
 		
 		
-		/*
-		if(!can_rx(&msg)){
-			printf("No \n");
-		}
-		can_printmsg(msg);
-		*/
+		can_rx(&msg);
+		can_printmsg(msg);  // Print the message
+		int16_t duty_cycle = joy_x_to_duty_cycle(msg);  // Calculate the duty cycle
+		printf("Duty Cycle: %d\n", duty_cycle);  // Display the calculated duty cycle
+		pwm_set_duty_cycle(duty_cycle);
+	
 		 // Then print the actual message content
 		
 		//printf('G');
