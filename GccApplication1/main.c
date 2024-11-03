@@ -8,6 +8,8 @@
 #include "sam.h"
 #include "uart.h"
 #include "PWM.h"
+#include "ADC.h"
+#include "game.h"
 
 int main(void)
 {
@@ -41,20 +43,29 @@ int main(void)
 	// Initialize CAN with receive interrupts enabled
 	can_init(canSettings, 0); // Disable receive interrupts
 	pwm_init();
+	int16_t joy_value_prev = 100;
 	//pwm_set_duty_cycle(200);
+	adc_init();
+	bool hit;
 
     while (1) 
     {	
 		//can_tx(msg1);
 		//can_tx(msg2);
 		
-		
-		can_rx(&msg);
-		can_printmsg(msg);  // Print the message
-		int16_t duty_cycle = joy_x_to_duty_cycle(msg);  // Calculate the duty cycle
-		printf("Duty Cycle: %d\n", duty_cycle);  // Display the calculated duty cycle
+		if(!can_rx(&msg)){
+			//printf("No");
+		}
+		//printf("ADC %d \n", adc_read_last());
+		//can_rx(&msg);
+		//can_printmsg(msg);  // Print the message
+		int16_t duty_cycle = joy_x_to_duty_cycle(msg, &joy_value_prev);  // Calculate the duty cycle
+		//printf("Duty Cycle: %d\n", duty_cycle);  // Display the calculated duty cycle
 		pwm_set_duty_cycle(duty_cycle);
-	
+		
+		hit = register_hit();
+		printf("Hit detection: %d \n", hit);
+		
 		 // Then print the actual message content
 		
 		//printf('G');

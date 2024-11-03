@@ -7,6 +7,8 @@
 #define PWM_MIN_DUTY_CYCLE 901    // 0.9 ms for min duty cycle
 #define PWM_MAX_DUTY_CYCLE 2099   // 2.1 ms for max duty cycle
 
+
+
 void pwm_init(void) {
 	// Enable PWM peripheral clock
 	PMC->PMC_PCER1 |= (1 << (ID_PWM - 32));
@@ -42,8 +44,20 @@ void pwm_set_duty_cycle(uint16_t duty_cycle) {
 	PWM->PWM_CH_NUM[1].PWM_CDTYUPD = duty_cycle;
 }
 
-int16_t joy_x_to_duty_cycle(CanMsg msg) {
-	int8_t joy_value = (int16_t) msg.byte[1];
+int16_t joy_x_to_duty_cycle(CanMsg msg, int16_t* prev) {
+	
+	int16_t joy_value = msg.byte[0];
+	//printf("Joyvalue 1: \n%d", joy_value);
 	joy_value += 100;  // Shift range from [-100, 100] to [0, 200]
-	return (joy_value * 1200 / 200) + 1200;  // Scale and shift to [900, 2100]
+	//printf("Joyvalue 2: \n%d", joy_value);
+	if(joy_value < 0){
+		joy_value = 0;
+		//printf("Joyvalue 3: \n%d", joy_value);
+	}
+
+	if(abs(joy_value-(*prev)) > 6){
+		*prev = joy_value;
+	}
+	
+	return (*prev * 1200 / 200) + 900;  // Scale and shift to [900, 2100]
 }
