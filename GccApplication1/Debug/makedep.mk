@@ -16,6 +16,8 @@ IR_driver.c
 
 main.c
 
+motor_driver.c
+
 PWM.c
 
 time.c

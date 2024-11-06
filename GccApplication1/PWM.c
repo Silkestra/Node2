@@ -61,3 +61,5 @@ int16_t joy_x_to_duty_cycle(CanMsg msg, int16_t* prev) {
 	
 	return (*prev * 1200 / 200) + 900;  // Scale and shift to [900, 2100]
 }
+
+

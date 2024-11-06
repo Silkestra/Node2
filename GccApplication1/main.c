@@ -47,11 +47,21 @@ int main(void)
 	//pwm_set_duty_cycle(200);
 	adc_init();
 	bool hit;
+	solenoid_init();
+	motor_encoder_init();
+	uint32_t motor_value;
+	bool button_clicked;
+	int16_t motor_pwm;
+	pwm_drive_motor_init();
+	
 
     while (1) 
     {	
 		//can_tx(msg1);
 		//can_tx(msg2);
+		//printf("%u", TC2->TC_BMR);
+		//printf("TC_BMR: %#010x\n", (uint32_t)TC2->TC_BMR);  // Print as hexadecimal (e.g., 0x00000000)
+
 		
 		if(!can_rx(&msg)){
 			//printf("No");
@@ -63,8 +73,21 @@ int main(void)
 		//printf("Duty Cycle: %d\n", duty_cycle);  // Display the calculated duty cycle
 		pwm_set_duty_cycle(duty_cycle);
 		
+		button_clicked = msg.byte[2];
+		//printf("Button clicked %d \n", button_clicked);
+		shoot_ball(button_clicked);
+		
+		
 		hit = register_hit();
-		printf("Hit detection: %d \n", hit);
+		//printf("Hit detection: %d \n", hit);
+		
+		motor_value = read_encoder();
+
+		motor_pwm = joy_y_to_duty_cycle(msg);
+		printf("%d \n",motor_pwm);
+		drive_motor(motor_pwm);
+		
+		//printf("Encoder value: %08x\n", motor_value);
 		
 		 // Then print the actual message content
 		
