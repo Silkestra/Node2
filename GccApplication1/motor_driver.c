@@ -34,9 +34,27 @@ void motor_encoder_init(){
 	TC2->TC_CHANNEL[0].TC_CCR |= TC_CCR_SWTRG | TC_CCR_CLKEN;
 }
 
-uint32_t read_encoder(){
+int16_t read_encoder(){
 	return TC2->TC_CHANNEL[0].TC_CV;
 }
+
+/*void setup_timer_interrupt(){
+	PMC->PMC_PCER1 |= (1 << (ID_TC7 - 32)); // Enable TC2, channel 1
+	TC2->TC_CHANNEL[1].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK3 | TC_CMR_WAVE | TC_CMR_WAVSEL_UP_RC; // Enable timer, waveform and rc register
+	TC2->TC_CHANNEL[1].TC_RC = 26250; // 84 MHz / 32 (for TIMER_CLOCK3) / 100 Hz leads to a 10 ms interrupt
+	TC2->TC_CHANNEL[1].TC_IER = TC_IER_CPCS; // Interrupt Enable, RC Compare enabled
+	NVIC_EnableIRQ(TC7_IRQn); // Enable the interrupt in the NVIC for TC2 channel 1
+	
+	TC2->TC_CHANNEL[1].TC_CCR = TC_CCR_CLKEN | TC_CCR_SWTRG; // Start counter clock and software trigger
+}*/
+
+/*void timer_handler(){
+	TC2->TC_CHANNEL[1].TC_SR; // Clearing the interrupt flag by reading status register
+	
+	int16_t duty_cycle_2 = pi_controller(pi_data.scaled_motor_value, pi_data.msg, pi_data.K_p, &pi_data.cumulative_error, pi_data.K_i);
+	
+	drive_motor(duty_cycle_2);
+}*/
 
 void shoot_ball(bool button_clicked){
 	if(button_clicked){
@@ -79,5 +97,27 @@ int16_t joy_y_to_duty_cycle(CanMsg msg) {
 	return (joy_value * 20 / 100);
 }
 
+int8_t scale_encoder_value(int8_t motor_value){
+	return (motor_value * 200) / 5616 - 100;
+}
 
-
+int16_t pi_controller(int8_t motor_value, CanMsg msg, int8_t K_p, int16_t* cumulative_error, int8_t K_i){
+	int8_t joy_value = (int8_t)msg.byte[1];
+	int16_t error = joy_value - motor_value;
+	*cumulative_error += error;
+	
+	if(abs(*cumulative_error) > 3000){
+		*cumulative_error = 0; // Prøver å fikse integrator windup
+	}
+	
+	float duty_cycle = K_p * error * 0.07 + K_i * (*cumulative_error) * 0.00002 * error;
+	
+	printf("K_p: %d\n", K_p);
+	printf("Joy_value: %d\n", joy_value);
+	printf("Encoder value: %d\n", motor_value);
+	printf("Error: %d\n", error);
+	printf("Duty cycle: %.2f\n", duty_cycle);
+	printf("Cumsum : %d\n", *cumulative_error);
+	
+	return (int16_t)duty_cycle;
+}

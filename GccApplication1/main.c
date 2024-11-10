@@ -22,7 +22,7 @@ int main(void)
 	*/
 	
 	WDT->WDT_MR = WDT_MR_WDDIS;
-	CanMsg msg;
+	CanMsg msg = {0x000, 0x03, {0x00, 0x00, 0x00}};
 	CanMsg msg1={0x000,0x02,{0xBE, 0x53}};
 	CanMsg msg2={0x000,0x02,{0xA4, 0x23}};
 	
@@ -49,11 +49,16 @@ int main(void)
 	bool hit;
 	solenoid_init();
 	motor_encoder_init();
-	uint32_t motor_value;
+	int16_t motor_value;
 	bool button_clicked;
 	int16_t motor_pwm;
 	pwm_drive_motor_init();
+	//setup_timer_interrupt();
+	int8_t K_p = 1;
+	volatile int16_t cumulative_error = 0;
+	int8_t K_i = 1;
 	
+	//PI_controller_data pi_data = {.motor_value = 0, .msg = {0x000, 0x03, {0x00, 0x00, 0x00}}, .K_p = 1, .cumulative_error = 0, .K_i = 1};
 
     while (1) 
     {	
@@ -83,28 +88,24 @@ int main(void)
 		
 		motor_value = read_encoder();
 
-		motor_pwm = joy_y_to_duty_cycle(msg);
-		printf("%d \n",motor_pwm);
-		drive_motor(motor_pwm);
+		//motor_pwm = joy_y_to_duty_cycle(msg);
+		//printf("%d \n",motor_pwm);
+		//drive_motor(motor_pwm);
 		
-		//printf("Encoder value: %08x\n", motor_value);
+		//printf("Encoder value: %d\n", motor_value);
 		
-		 // Then print the actual message content
+		int8_t scaled_encoder = scale_encoder_value(motor_value);
+		//printf("Scaled encoder: %d\n", scaled_encoder);
+		
+		int16_t duty_cycle_2 = pi_controller(scaled_encoder, msg, K_p, &cumulative_error, K_i);
+		//printf("Duty cycle: %d \n", duty_cycle_2);
+		drive_motor(duty_cycle_2);
 		
 		//printf('G');
 		//for (volatile uint32_t i = 0; i < 1000; i++);
 		
 		//uart_tx(0xF0);
 		//uart_tx('B');
-		//printf("A");
-		//for (volatile uint32_t i = 0; i < 10000; i++);
-		/*
-		REG_PIOB_SODR = (1 << 13);
-		for (volatile uint32_t i = 0; i < 100000; i++); 
-		REG_PIOB_CODR = (1 << 13); 	
-		for (volatile uint32_t i = 0; i < 100000; i++); 
-	
-	*/
     }
 	
 }
