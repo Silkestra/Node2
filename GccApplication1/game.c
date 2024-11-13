@@ -2,7 +2,8 @@
 
 bool register_hit(void){
 	uint16_t data = adc_read_last();
-	if(data < 2000){
+	printf("%d", data);
+	if(data < 200){
 		return true;
 	}
 	

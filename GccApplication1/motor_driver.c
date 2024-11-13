@@ -97,26 +97,26 @@ int16_t joy_y_to_duty_cycle(CanMsg msg) {
 	return (joy_value * 20 / 100);
 }
 
-int8_t scale_encoder_value(int8_t motor_value){
-	return (motor_value * 200) / 5616 - 100;
+int16_t scale_encoder_value(int16_t motor_value) {
+	return ((motor_value * 200) / 5616) - 100;
 }
 
-int16_t pi_controller(int8_t motor_value, CanMsg msg, int8_t K_p, int16_t* cumulative_error, int8_t K_i){
+int16_t pi_controller(int16_t motor_value, CanMsg msg, int8_t K_p, int16_t* cumulative_error, int8_t K_i){
 	int8_t joy_value = (int8_t)msg.byte[1];
 	int16_t error = joy_value - motor_value;
 	*cumulative_error += error;
 	
-	if(abs(*cumulative_error) > 3000){
-		*cumulative_error = 0; // Prøver å fikse integrator windup
+	if(abs(*cumulative_error) > 4000){
+		*cumulative_error = 1000; // Prøver å fikse integrator windup
 	}
 	
-	float duty_cycle = K_p * error * 0.07 + K_i * (*cumulative_error) * 0.00002 * error;
+	float duty_cycle = K_p * error * 0.2 + K_i * (*cumulative_error) * 0.003 ;
 	
-	printf("K_p: %d\n", K_p);
-	printf("Joy_value: %d\n", joy_value);
-	printf("Encoder value: %d\n", motor_value);
-	printf("Error: %d\n", error);
-	printf("Duty cycle: %.2f\n", duty_cycle);
+	//printf("K_p: %d\n", K_p);
+	//printf("Joy_value: %d\n", joy_value);
+	//printf("Encoder value: %d\n", motor_value);
+	//printf("Error: %d\n", error);
+	//printf("Duty cycle: %.2f\n", duty_cycle);
 	printf("Cumsum : %d\n", *cumulative_error);
 	
 	return (int16_t)duty_cycle;

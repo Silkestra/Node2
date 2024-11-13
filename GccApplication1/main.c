@@ -10,6 +10,9 @@
 #include "PWM.h"
 #include "ADC.h"
 #include "game.h"
+#include "motor_driver.h"
+
+//PI_controller_data pi_data;
 
 int main(void)
 {
@@ -84,17 +87,26 @@ int main(void)
 		
 		
 		hit = register_hit();
+		
+		
+		if(hit){
+			printf("hit");
+			CanMsg msg2 = {0x001,0x01,{0x1}};
+			can_tx(msg2);
+			CanMsg msg3 = {0x002, 0x01, {0x1}};
+			can_tx(msg3);
+		} else {printf("no");}
 		//printf("Hit detection: %d \n", hit);
 		
 		motor_value = read_encoder();
-
+		
 		//motor_pwm = joy_y_to_duty_cycle(msg);
 		//printf("%d \n",motor_pwm);
 		//drive_motor(motor_pwm);
 		
 		//printf("Encoder value: %d\n", motor_value);
 		
-		int8_t scaled_encoder = scale_encoder_value(motor_value);
+		int16_t scaled_encoder = scale_encoder_value(motor_value);
 		//printf("Scaled encoder: %d\n", scaled_encoder);
 		
 		int16_t duty_cycle_2 = pi_controller(scaled_encoder, msg, K_p, &cumulative_error, K_i);
