@@ -29,13 +29,13 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING
  12 .debug_macro  00012fb0  00000000  00000000  0002a09d  2**0
                   CONTENTS, READONLY, DEBUGGING
- 13 .debug_line   00004f2e  00000000  00000000  0003d04d  2**0
+ 13 .debug_line   00004f27  00000000  00000000  0003d04d  2**0
                   CONTENTS, READONLY, DEBUGGING
- 14 .debug_str    000560ca  00000000  00000000  00041f7b  2**0
+ 14 .debug_str    000560ca  00000000  00000000  00041f74  2**0
                   CONTENTS, READONLY, DEBUGGING
- 15 .debug_frame  00001968  00000000  00000000  00098048  2**2
+ 15 .debug_frame  00001968  00000000  00000000  00098040  2**2
                   CONTENTS, READONLY, DEBUGGING
- 16 .debug_loc    00000ed8  00000000  00000000  000999b0  2**0
+ 16 .debug_loc    00000ed8  00000000  00000000  000999a8  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -115,31 +115,24 @@ void adc_init(void) {
    80162:	6853      	ldr	r3, [r2, #4]
    80164:	f043 0304 	orr.w	r3, r3, #4
    80168:	6053      	str	r3, [r2, #4]
-	// Enable the ADC peripheral clock
 	PMC->PMC_PCER1 |= (1 << 5);   //ID_ADC;
    8016a:	f5a2 6200 	sub.w	r2, r2, #2048	; 0x800
    8016e:	f8d2 3100 	ldr.w	r3, [r2, #256]	; 0x100
    80172:	f043 0320 	orr.w	r3, r3, #32
    80176:	f8c2 3100 	str.w	r3, [r2, #256]	; 0x100
 
-	// Configure ADC mode for freerun, prescaler, and single-ended
-	ADC->ADC_MR = ADC_MR_FREERUN_ON | ADC_MR_PRESCAL(5); 
+	ADC->ADC_MR = ADC_MR_FREERUN_ON | ADC_MR_PRESCAL(5); // Configure ADC mode for freerun, prescaler, and single-ended
    8017a:	4b07      	ldr	r3, [pc, #28]	; (80198 <adc_init+0x38>)
    8017c:	f44f 62b0 	mov.w	r2, #1408	; 0x580
    80180:	605a      	str	r2, [r3, #4]
 
-	// Enable the desired ADC channels
 	ADC->ADC_CHER = ADC_CHER_CH0;  // Enable channel 0 for continuous sampling
    80182:	2201      	movs	r2, #1
    80184:	611a      	str	r2, [r3, #16]
-
-	// Start conversion (ADC will run continuously in freerun mode)
-	ADC->ADC_CR = ADC_CR_START;
+	ADC->ADC_CR = ADC_CR_START; // Start conversion (ADC will run continuously in freerun mode)
    80186:	2202      	movs	r2, #2
    80188:	601a      	str	r2, [r3, #0]
-	
-	//Set channel 0 in single ended mode 
-	ADC->ADC_COR &= ~ADC_COR_DIFF0;
+	ADC->ADC_COR &= ~ADC_COR_DIFF0; //Set channel 0 in single ended mode 
    8018a:	6cda      	ldr	r2, [r3, #76]	; 0x4c
    8018c:	f422 3280 	bic.w	r2, r2, #65536	; 0x10000
    80190:	64da      	str	r2, [r3, #76]	; 0x4c
@@ -151,7 +144,6 @@ void adc_init(void) {
 }
 
 uint16_t adc_read_last(void) {
-	// Read the last converted data
 	return ADC->ADC_CDR[0]; //ADC->ADC_LCDR & ADC_LCDR_LDATA_Msk;
    8019c:	4b01      	ldr	r3, [pc, #4]	; (801a4 <adc_read_last+0x8>)
    8019e:	6d18      	ldr	r0, [r3, #80]	; 0x50
@@ -581,9 +573,9 @@ bool register_hit(void){
    80414:	000816e1 	.word	0x000816e1
 
 00080418 <main>:
+#include "ADC.h"
+#include "game.h"
 #include "motor_driver.h"
-
-//PI_controller_data pi_data;
 
 int main(void)
 {
@@ -597,11 +589,7 @@ int main(void)
    80424:	4840      	ldr	r0, [pc, #256]	; (80528 <main+0x110>)
    80426:	4b41      	ldr	r3, [pc, #260]	; (8052c <main+0x114>)
    80428:	4798      	blx	r3
-	/*REG_PMC_PCER0 |= (1 << ID_PIOB);
-    REG_PIOB_PER = (1 << 13);
-	REG_PIOB_OER = (1 << 13);
-	*/
-	
+
 	WDT->WDT_MR = WDT_MR_WDDIS;
    8042a:	f44f 4200 	mov.w	r2, #32768	; 0x8000
    8042e:	4b40      	ldr	r3, [pc, #256]	; (80530 <main+0x118>)
@@ -613,11 +601,11 @@ int main(void)
    80438:	940d      	str	r4, [sp, #52]	; 0x34
    8043a:	2303      	movs	r3, #3
    8043c:	f88d 302d 	strb.w	r3, [sp, #45]	; 0x2d
+	
 	float T_Q = 0.0000005;
 	long F_OSC = 84 * 1000000;
 	int BRP = (T_Q * F_OSC / 2) - 1;
 	
-	// Configure CAN initialization structure
 	CanInit canSettings={.brp=41, .phase1 = 6, .phase2 = 5, .propag= 0, .smp= 0, .sjw=2};
    80440:	4620      	mov	r0, r4
    80442:	2305      	movs	r3, #5
@@ -629,11 +617,7 @@ int main(void)
    80454:	f363 300f 	bfi	r0, r3, #12, #4
    80458:	2329      	movs	r3, #41	; 0x29
    8045a:	f363 4017 	bfi	r0, r3, #16, #8
-	canSettings.sjw = 2;
-	canSettings.brp = BRP;    // Set BRP as calculated earlier
-	canSettings.smp = 0;      // Use sample mode
-	*/
-	// Initialize CAN with receive interrupts enabled
+
 	can_init(canSettings, 0); // Disable receive interrupts
    8045e:	4621      	mov	r1, r4
    80460:	f020 407f 	bic.w	r0, r0, #4278190080	; 0xff000000
@@ -645,11 +629,12 @@ int main(void)
 	int16_t joy_value_prev = 100;
    8046c:	2364      	movs	r3, #100	; 0x64
    8046e:	f8ad 302a 	strh.w	r3, [sp, #42]	; 0x2a
-	//pwm_set_duty_cycle(200);
+	
 	adc_init();
    80472:	4b32      	ldr	r3, [pc, #200]	; (8053c <main+0x124>)
    80474:	4798      	blx	r3
 	bool hit;
+	
 	solenoid_init();
    80476:	4b32      	ldr	r3, [pc, #200]	; (80540 <main+0x128>)
    80478:	4798      	blx	r3
@@ -662,7 +647,6 @@ int main(void)
 	pwm_drive_motor_init();
    8047e:	4b32      	ldr	r3, [pc, #200]	; (80548 <main+0x130>)
    80480:	4798      	blx	r3
-	//setup_timer_interrupt();
 	int8_t K_p = 1;
 	volatile int16_t cumulative_error = 0;
    80482:	f8ad 4028 	strh.w	r4, [sp, #40]	; 0x28
@@ -676,20 +660,13 @@ int main(void)
    80488:	4830      	ldr	r0, [pc, #192]	; (8054c <main+0x134>)
    8048a:	4b31      	ldr	r3, [pc, #196]	; (80550 <main+0x138>)
    8048c:	4798      	blx	r3
-		//printf("Hit detection: %d \n", hit);
 		
 		motor_value = read_encoder();
    8048e:	4b31      	ldr	r3, [pc, #196]	; (80554 <main+0x13c>)
    80490:	4798      	blx	r3
-		//printf("%d \n",motor_pwm);
-		//drive_motor(motor_pwm);
-		
-		//printf("Encoder value: %d\n", motor_value);
-		
 		int16_t scaled_encoder = scale_encoder_value(motor_value);
    80492:	4b31      	ldr	r3, [pc, #196]	; (80558 <main+0x140>)
    80494:	4798      	blx	r3
-		//printf("Scaled encoder: %d\n", scaled_encoder);
 		
 		int16_t duty_cycle_2 = pi_controller(scaled_encoder, msg, K_p, &cumulative_error, K_i);
    80496:	2301      	movs	r3, #1
@@ -701,7 +678,6 @@ int main(void)
    804a2:	e913 000e 	ldmdb	r3, {r1, r2, r3}
    804a6:	4c2d      	ldr	r4, [pc, #180]	; (8055c <main+0x144>)
    804a8:	47a0      	blx	r4
-		//printf("Duty cycle: %d \n", duty_cycle_2);
 		drive_motor(duty_cycle_2);
    804aa:	4b2d      	ldr	r3, [pc, #180]	; (80560 <main+0x148>)
    804ac:	4798      	blx	r3
@@ -819,11 +795,9 @@ void solenoid_init(){
    805ac:	400e1200 	.word	0x400e1200
 
 000805b0 <motor_encoder_init>:
+}
 
 void motor_encoder_init(){
-	//PMC->PMC_PCER0 = (1 << ID_TC2);
-	//PMC->PMC_PCER1 = (1 << ID_TC6 - 32);
-	//PMC->PMC_PCER0 |= (1 << ID_PIOC);
 	PMC->PMC_PCER1 |= (1 << (ID_TC6 - 32));
    805b0:	4a11      	ldr	r2, [pc, #68]	; (805f8 <motor_encoder_init+0x48>)
    805b2:	f8d2 3100 	ldr.w	r3, [r2, #256]	; 0x100
@@ -843,11 +817,7 @@ void motor_encoder_init(){
    805d0:	6f1a      	ldr	r2, [r3, #112]	; 0x70
    805d2:	f042 62c0 	orr.w	r2, r2, #100663296	; 0x6000000
    805d6:	671a      	str	r2, [r3, #112]	; 0x70
-	TC2->TC_CHANNEL[0].TC_CMR = TC_CMR_TCCLKS_XC0 | TC_CMR_ETRGEDG_NONE; // Klokke 0, clock blir ikke gated av eksternt signal
-	TC2->TC_CHANNEL[0].TC_CCR = TC_CCR_CLKEN | TC_CCR_SWTRG; // Software trigger
-	*/
-	
-	//TC2->TC_CHANNEL[0].TC_CCR = TC_CCR_CLKDIS;
+
 	TC2->TC_BMR |= TC_BMR_QDEN | TC_BMR_POSEN | TC_BMR_EDGPHA;
    805d8:	4b09      	ldr	r3, [pc, #36]	; (80600 <motor_encoder_init+0x50>)
    805da:	f8d3 20c4 	ldr.w	r2, [r3, #196]	; 0xc4
@@ -912,22 +882,20 @@ void pwm_drive_motor_init(){
    80630:	4b10      	ldr	r3, [pc, #64]	; (80674 <pwm_drive_motor_init+0x44>)
    80632:	f240 220b 	movw	r2, #523	; 0x20b
    80636:	f8c3 2200 	str.w	r2, [r3, #512]	; 0x200
-	PWM->PWM_CH_NUM[0].PWM_CPRD = PWM_PERIOD_MOTOR;        // Set period for 20 ms (50 Hz)
+	PWM->PWM_CH_NUM[0].PWM_CPRD = PWM_PERIOD_MOTOR; // Set period for 20 ms (50 Hz)
    8063a:	2214      	movs	r2, #20
    8063c:	f8c3 220c 	str.w	r2, [r3, #524]	; 0x20c
   // Set initial duty cycle to 0.9 ms
 
-	// Enable PWM channel
-	PWM->PWM_ENA = PWM_ENA_CHID0;
+	PWM->PWM_ENA = PWM_ENA_CHID0; // Enable PWM channel
    80640:	2201      	movs	r2, #1
    80642:	605a      	str	r2, [r3, #4]
 
-	// Enable the output on the desired pin
-	PIOB->PIO_PDR = PIO_PB12;     // Disable PIO control for PB13
+	PIOB->PIO_PDR = PIO_PB12; // Disable PIO control for PB13
    80644:	f503 239a 	add.w	r3, r3, #315392	; 0x4d000
    80648:	f44f 5280 	mov.w	r2, #4096	; 0x1000
    8064c:	605a      	str	r2, [r3, #4]
-	PIOB->PIO_ABSR |= PIO_PB12;   // Select peripheral B for PWM on PB13
+	PIOB->PIO_ABSR |= PIO_PB12; // Select peripheral B for PWM on PB13
    8064e:	6f1a      	ldr	r2, [r3, #112]	; 0x70
    80650:	f442 5280 	orr.w	r2, r2, #4096	; 0x1000
    80654:	671a      	str	r2, [r3, #112]	; 0x70
@@ -1064,11 +1032,7 @@ int16_t pi_controller(int16_t motor_value, CanMsg msg, int8_t K_p, int16_t* cumu
    80746:	4b0f      	ldr	r3, [pc, #60]	; (80784 <pi_controller+0xac>)
    80748:	4798      	blx	r3
    8074a:	4605      	mov	r5, r0
-	//printf("K_p: %d\n", K_p);
-	//printf("Joy_value: %d\n", joy_value);
-	//printf("Encoder value: %d\n", motor_value);
-	//printf("Error: %d\n", error);
-	//printf("Duty cycle: %.2f\n", duty_cycle);
+	
 	printf("Cumsum : %d\n", *cumulative_error);
    8074c:	4621      	mov	r1, r4
    8074e:	480e      	ldr	r0, [pc, #56]	; (80788 <pi_controller+0xb0>)
@@ -1097,44 +1061,37 @@ int16_t pi_controller(int16_t motor_value, CanMsg msg, int8_t K_p, int16_t* cumu
    80790:	00081299 	.word	0x00081299
 
 00080794 <pwm_init>:
+#define PWM_MIN_DUTY_CYCLE 901    //0.9 ms for min duty cycle
+#define PWM_MAX_DUTY_CYCLE 2099   // 2.1 ms for max duty cycle
 
 
-
-void pwm_init(void) {
-	// Enable PWM peripheral clock
-	PMC->PMC_PCER1 |= (1 << (ID_PWM - 32));
+void pwm_init(void){
+	PMC->PMC_PCER1 |= (1 << (ID_PWM - 32)); //Enable PWM peripheral clock
    80794:	4a11      	ldr	r2, [pc, #68]	; (807dc <pwm_init+0x48>)
    80796:	f8d2 3100 	ldr.w	r3, [r2, #256]	; 0x100
    8079a:	f043 0310 	orr.w	r3, r3, #16
    8079e:	f8c2 3100 	str.w	r3, [r2, #256]	; 0x100
-
-	// Select the PWM channel and disable it for configuration
-	PWM->PWM_DIS = PWM_DIS_CHID1;
+	PWM->PWM_DIS = PWM_DIS_CHID1; //Select the PWM channel and disable it for configuration
    807a2:	4b0f      	ldr	r3, [pc, #60]	; (807e0 <pwm_init+0x4c>)
    807a4:	2202      	movs	r2, #2
    807a6:	609a      	str	r2, [r3, #8]
 
-	// Configure the clock for the PWM channel
 	PWM->PWM_CLK = PWM_CLK_PREA(1) | PWM_CLK_DIVA(42);  // Set prescaler for desired clock frequency
    807a8:	f44f 7195 	mov.w	r1, #298	; 0x12a
    807ac:	6019      	str	r1, [r3, #0]
 
-	// Configure PWM channel with period and duty cycle (0% initially)
 	PWM->PWM_CH_NUM[1].PWM_CMR = PWM_CMR_CPRE_CLKA | PWM_CMR_CPOL;  // Use CLKA as clock source for PWM channel 0
    807ae:	f240 210b 	movw	r1, #523	; 0x20b
    807b2:	f8c3 1220 	str.w	r1, [r3, #544]	; 0x220
-	PWM->PWM_CH_NUM[1].PWM_CPRD = PWM_PERIOD;        // Set period for 20 ms (50 Hz)
+	PWM->PWM_CH_NUM[1].PWM_CPRD = PWM_PERIOD;        // Set period for 20 ms
    807b6:	f644 6120 	movw	r1, #20000	; 0x4e20
    807ba:	f8c3 122c 	str.w	r1, [r3, #556]	; 0x22c
 	PWM->PWM_CH_NUM[1].PWM_CDTY = PWM_MIN_DUTY_CYCLE;  // Set initial duty cycle to 0.9 ms
    807be:	f240 3185 	movw	r1, #901	; 0x385
    807c2:	f8c3 1224 	str.w	r1, [r3, #548]	; 0x224
-
-	// Enable PWM channel
+	
 	PWM->PWM_ENA = PWM_ENA_CHID1;
    807c6:	605a      	str	r2, [r3, #4]
-
-	// Enable the output on the desired pin
 	PIOB->PIO_PDR = PIO_PB13;     // Disable PIO control for PB13
    807c8:	f503 239a 	add.w	r3, r3, #315392	; 0x4d000
    807cc:	f44f 5200 	mov.w	r2, #8192	; 0x2000
@@ -1167,8 +1124,7 @@ void pwm_set_duty_cycle(uint16_t duty_cycle) {
    807f8:	f240 3085 	movw	r0, #901	; 0x385
 	}
 
-	// Set the new duty cycle
-	PWM->PWM_CH_NUM[1].PWM_CDTYUPD = duty_cycle;
+	PWM->PWM_CH_NUM[1].PWM_CDTYUPD = duty_cycle; // Set the new duty cycle
    807fc:	4b01      	ldr	r3, [pc, #4]	; (80804 <pwm_set_duty_cycle+0x20>)
    807fe:	f8c3 0228 	str.w	r0, [r3, #552]	; 0x228
    80802:	4770      	bx	lr
@@ -1185,16 +1141,13 @@ int16_t joy_x_to_duty_cycle(CanMsg msg, int16_t* prev) {
 	
 	int16_t joy_value = msg.byte[0];
    80814:	f99d 2008 	ldrsb.w	r2, [sp, #8]
-	//printf("Joyvalue 1: \n%d", joy_value);
 	joy_value += 100;  // Shift range from [-100, 100] to [0, 200]
    80818:	3264      	adds	r2, #100	; 0x64
    8081a:	b212      	sxth	r2, r2
-	//printf("Joyvalue 2: \n%d", joy_value);
 	if(joy_value < 0){
    8081c:	2a00      	cmp	r2, #0
    8081e:	db1a      	blt.n	80856 <joy_x_to_duty_cycle+0x4e>
 		joy_value = 0;
-		//printf("Joyvalue 3: \n%d", joy_value);
 	}
 
 	if(abs(joy_value-(*prev)) > 6){

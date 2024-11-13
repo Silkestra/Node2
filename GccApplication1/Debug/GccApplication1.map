@@ -3198,17 +3198,17 @@ OUTPUT(GccApplication1.elf elf32-littlearm)
  .debug_macro   0x00012e59       0x35 uart.o
  .debug_macro   0x00012e8e      0x122 uart.o
 
-.debug_line     0x00000000     0x4f2e
+.debug_line     0x00000000     0x4f27
  .debug_line    0x00000000      0x708 ADC.o
  .debug_line    0x00000708      0x8a4 can.o
  .debug_line    0x00000fac      0x728 Device_Startup/startup_sam3xa.o
  .debug_line    0x000016d4      0x785 Device_Startup/system_sam3xa.o
  .debug_line    0x00001e59      0x71d game.o
- .debug_line    0x00002576      0x778 main.o
- .debug_line    0x00002cee      0x7dd motor_driver.o
- .debug_line    0x000034cb      0x740 PWM.o
- .debug_line    0x00003c0b      0x982 time.o
- .debug_line    0x0000458d      0x9a1 uart.o
+ .debug_line    0x00002576      0x774 main.o
+ .debug_line    0x00002cea      0x7da motor_driver.o
+ .debug_line    0x000034c4      0x740 PWM.o
+ .debug_line    0x00003c04      0x982 time.o
+ .debug_line    0x00004586      0x9a1 uart.o
 
 .debug_str      0x00000000    0x560ca
  .debug_str     0x00000000    0x501d7 ADC.o
